@@ -690,16 +690,39 @@ simply.emitAccelData = function(accels, callback) {
   simply.emit('accelData', e);
 };
 
+/**
+ * Represents an image shown on the Pebble's display; created by {@link simply.addImage}
+ */
+simply.Image = function(image_id) {
+  var self = this;
+
+  //! Remove the image from the screen (and free the watch memory it was using)
+  this.remove = function() {
+    simply.impl.removeImage.call(simply, image_id);
+  };
+};
+
 var simply_image_id = 0;
+
+/**
+ * Add an image pre-loaded in the binary to the display at the given position. Images will appear over any text
+ * on the screen. The z-order of overlapping images is undefined. If an image would not fit on the display, the
+ * portion that does fit will be displayed. The returned {@link simply.Image} object can be used to manipulate the
+ * image.
+ * Note that it is possible to crash your application by displaying more simultaneous images than will fit in the
+ * watch's memory.
+ * 
+ * @memberOf simply
+ * @param {number} resource - The resource identifier. Typically a member of RESOURCE, e.g. RESOURCE.QUAVER
+ * @param {number} x - The x position of the image. The pebble is 144 pixels wide.
+ * @param {number} y - The y position of the image. The pebble is 168 pixels tall.
+ * @return {simply.Image} - An object that can be used to manipulate the displayed image.
+ */
 simply.addImage = function(resource, x, y) {
   var image_id = ++simply_image_id;
   simply.impl.addImage.call(this, resource, x, y, image_id);
   var self = this;
-  return {
-    remove: function() {
-      simply.impl.removeImage.call(self, image_id);
-    }
-  };
+  return new simply.Image(image_id);
 }
 
 return simply;
