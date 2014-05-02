@@ -227,18 +227,6 @@ static void click_config_provider(SimplyUi *self) {
   }
 }
 
-static void show_welcome_text(SimplyUi *self) {
-  if (self->title_text || self->subtitle_text || self->body_text) {
-    return;
-  }
-
-  simply_ui_set_text(self, &self->title_text, "Simply.js");
-  simply_ui_set_text(self, &self->subtitle_text, "Write apps with JS!");
-  simply_ui_set_text(self, &self->body_text, "Visit simplyjs.io for details.");
-
-  simply_ui_show(self);
-}
-
 static void window_load(Window *window) {
   SimplyUi *self = window_get_user_data(window);
 
@@ -261,8 +249,6 @@ static void window_load(Window *window) {
   scroll_layer_set_click_config_onto_window(scroll_layer, window);
 
   simply_ui_set_style(self, 1);
-
-  app_timer_register(10000, (AppTimerCallback) show_welcome_text, self);
 }
 
 static void window_unload(Window *window) {
