@@ -189,6 +189,11 @@ void display_layer_update_callback(Layer *layer, GContext *ctx) {
     graphics_draw_text(ctx, self->body_text, body_font, body_rect,
         GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
   }
+
+  // Draw some images on top.
+  for(SimplyImage *image = self->image_list; image != NULL; image = (SimplyImage *)simply_list_next((SimplyListNode *)image)) {
+    graphics_draw_bitmap_in_rect(ctx, image->bitmap, GRect(image->pos_x, image->pos_y, image->bitmap->bounds.size.w, image->bitmap->bounds.size.h));
+  }
 }
 
 static void single_click_handler(ClickRecognizerRef recognizer, void *context) {
@@ -288,7 +293,7 @@ SimplyUi *simply_ui_create(void) {
   }
 
   SimplyUi *self = malloc(sizeof(*self));
-  *self = (SimplyUi) { .window = NULL };
+  *self = (SimplyUi) { .window = NULL, .image_list = NULL };
   s_ui = self;
 
   for (int i = 0; i < NUM_BUTTONS; ++i) {
@@ -322,4 +327,42 @@ void simply_ui_destroy(SimplyUi *self) {
   free(self);
 
   s_ui = NULL;
+}
+
+void simply_ui_add_image(SimplyUi *self, uint32_t resource_id, int16_t x, int16_t y, uint32_t image_id) {
+  SimplyImage *image = malloc(sizeof(*image));
+  simply_list_init((SimplyListNode *)image);
+  image->bitmap = gbitmap_create_with_resource(resource_id);
+  image->pos_x = x;
+  image->pos_y = y;
+  image->id = image_id;
+  if(self->image_list) {
+    simply_list_insert_after((SimplyListNode *)self->image_list, (SimplyListNode *)image);
+  } else {
+    self->image_list = image;
+  }
+  layer_mark_dirty(self->display_layer);
+}
+
+void simply_ui_remove_image(SimplyUi *self, uint32_t image_id) {
+  SimplyImage *image = self->image_list;
+  SimplyListNode *node = (SimplyListNode *)image;
+  while(image != NULL) {
+    if(image->id == image_id) {
+      if(self->image_list == image) {
+        if(node->prev) {
+          self->image_list = (SimplyImage *)node->prev;
+        } else {
+          self->image_list = (SimplyImage *)node->next;
+        }
+      }
+      simply_list_remove_node(node);
+      free(image->bitmap);
+      free(image);
+      break;
+    }
+    node = simply_list_next((SimplyListNode *)image);
+    image = (SimplyImage *)node;
+  }
+  layer_mark_dirty(self->display_layer);
 }

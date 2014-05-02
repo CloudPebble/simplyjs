@@ -84,6 +84,22 @@ var commands = [{
   }, {
     name: 'down',
   }],
+}, {
+  name: 'addImage',
+  params: [{
+    name: 'x'
+  }, {
+    name: 'y'
+  }, {
+    name: 'resource_id'
+  }, {
+    name: 'image_id'
+  }]
+}, {
+  name: 'removeImage',
+  params: [{
+    name: 'image_id'
+  }]
 }];
 
 var commandMap = {};
@@ -359,6 +375,23 @@ SimplyPebble.accelPeek = function(callback) {
   var packet = makePacket(command);
   SimplyPebble.sendPacket(packet);
 };
+
+SimplyPebble.addImage = function(resource_id, x, y, image_id) {
+  var command = commandMap.addImage;
+  var packet = makePacket(command);
+  packet[command.paramMap.x.id] = x;
+  packet[command.paramMap.y.id] = y;
+  packet[command.paramMap.resource_id.id] = resource_id;
+  packet[command.paramMap.image_id.id] = image_id;
+  SimplyPebble.sendPacket(packet);
+};
+
+SimplyPebble.removeImage = function(image_id) {
+  var command = commandMap.removeImage;
+  var packet = makePacket(command);
+  packet[command.paramMap.image_id.id] = image_id;
+  SimplyPebble.sendPacket(packet);
+}
 
 readInt = function(packet, width, pos, signed) {
   var value = 0;

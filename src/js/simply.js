@@ -690,6 +690,18 @@ simply.emitAccelData = function(accels, callback) {
   simply.emit('accelData', e);
 };
 
+var simply_image_id = 0;
+simply.addImage = function(resource, x, y) {
+  var image_id = ++simply_image_id;
+  simply.impl.addImage.call(this, resource, x, y, image_id);
+  var self = this;
+  return {
+    remove: function() {
+      simply.impl.removeImage.call(self, image_id);
+    }
+  };
+}
+
 return simply;
 
 })();

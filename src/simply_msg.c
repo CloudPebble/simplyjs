@@ -22,6 +22,8 @@ enum SimplyACmd {
   SimplyACmd_getAccelData,
   SimplyACmd_configAccelData,
   SimplyACmd_configButtons,
+  SimplyACmd_addImage,
+  SimplyACmd_removeImage,
 };
 
 typedef enum VibeType VibeType;
@@ -126,6 +128,35 @@ static void handle_set_accel_config(DictionaryIterator *iter, Simply *simply) {
   }
 }
 
+static void handle_add_image(DictionaryIterator *iter, Simply *simply) {
+  Tuple *tuple;
+  int16_t x = 0;
+  int16_t y = 0;
+  uint32_t resource = 0;
+  uint32_t image_id = 0;
+  if ((tuple = dict_find(iter, 1))) {
+    x = (int16_t)tuple->value->int32;
+  }
+  if ((tuple = dict_find(iter, 2))) {
+    y = (int16_t)tuple->value->int32;
+  }
+  if ((tuple = dict_find(iter, 3))) {
+    resource = tuple->value->uint32;
+  }
+  if ((tuple = dict_find(iter, 4))) {
+    image_id = tuple->value->uint32;
+  }
+
+  simply_ui_add_image(simply->ui, resource, x, y, image_id);
+}
+
+static void handle_remove_image(DictionaryIterator *iter, Simply *simply) {
+  Tuple *tuple;
+  if ((tuple = dict_find(iter, 1))) {
+    simply_ui_remove_image(simply->ui, tuple->value->uint32);
+  }
+}
+
 static void received_callback(DictionaryIterator *iter, void *context) {
   Tuple *tuple = dict_find(iter, 0);
   if (!tuple) {
@@ -156,6 +187,12 @@ static void received_callback(DictionaryIterator *iter, void *context) {
       break;
     case SimplyACmd_configButtons:
       handle_config_buttons(iter, context);
+      break;
+    case SimplyACmd_addImage:
+      handle_add_image(iter, context);
+      break;
+    case SimplyACmd_removeImage:
+      handle_remove_image(iter, context);
       break;
   }
 }

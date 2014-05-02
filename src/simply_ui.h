@@ -1,10 +1,13 @@
 #pragma once
 
 #include <pebble.h>
+#include "simply_list.h"
 
 typedef struct SimplyStyle SimplyStyle;
 
 typedef struct SimplyUi SimplyUi;
+
+typedef struct SimplyImage SimplyImage;
 
 struct SimplyUi {
   Window *window;
@@ -16,6 +19,16 @@ struct SimplyUi {
   Layer *display_layer;
   bool is_scrollable;
   uint32_t button_mask;
+
+  SimplyImage* image_list;
+};
+
+struct SimplyImage {
+	SimplyListNode node;
+  GBitmap *bitmap;
+  int16_t pos_x;
+  int16_t pos_y;
+  uint32_t id;
 };
 
 SimplyUi *simply_ui_create(void);
@@ -34,3 +47,6 @@ void simply_ui_set_fullscreen(SimplyUi *self, bool is_fullscreen);
 
 void simply_ui_set_button(SimplyUi *self, ButtonId button, bool enable);
 
+void simply_ui_add_image(SimplyUi *self, uint32_t resource_id, int16_t pos_x, int16_t pos_y, uint32_t image_id);
+
+void simply_ui_remove_image(SimplyUi *self, uint32_t image_id);
