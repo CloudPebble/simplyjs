@@ -319,6 +319,11 @@ void simply_ui_add_image(SimplyUi *self, uint32_t resource_id, int16_t x, int16_
   SimplyImage *image = malloc(sizeof(*image));
   simply_list_init((SimplyListNode *)image);
   image->bitmap = gbitmap_create_with_resource(resource_id);
+  if(image->bitmap == NULL) {
+    free(image);
+    LOG("Failed to load image with resource id %d", (int)resource_id);
+    return;
+  }
   image->pos_x = x;
   image->pos_y = y;
   image->id = image_id;
