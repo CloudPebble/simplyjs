@@ -12,6 +12,17 @@ var formify = function(data) {
   return params.join('&');
 };
 
+var deformify = function(form) {
+  var params = {};
+  form.replace(/(?:([^=&]*)=?([^&]*)?)(?:&|$)/g, function(_, name, value) {
+    if (name) {
+      params[name] = value || true;
+    }
+    return _;
+  });
+  return params;
+};
+
 /**
  * ajax options. There are various properties with url being the only required property.
  * @typedef ajaxOptions
@@ -53,6 +64,11 @@ var ajax = function(opt, success, failure) {
     if (failure) { failure = onHandler('failure', failure); }
   }
 
+  if (opt.cache === false) {
+    var appendSymbol = url.indexOf('?') === -1 ? '?' : '&';
+    url += appendSymbol + '_=' + new Date().getTime();
+  }
+
   var req = new XMLHttpRequest();
   req.open(method.toUpperCase(), url, opt.async !== false);
 
@@ -63,28 +79,32 @@ var ajax = function(opt, success, failure) {
     }
   }
 
-  var data = null;
-  if (opt.data) {
+  var data = opt.data;
+  if (data) {
     if (opt.type === 'json') {
       req.setRequestHeader('Content-Type', 'application/json');
       data = JSON.stringify(opt.data);
-    } else {
+    } else if (opt.type !== 'text') {
+      req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
       data = formify(opt.data);
     }
   }
 
-  if (opt.cache === false) {
-    var appendSymbol = url.indexOf('?') === -1 ? '?' : '&';
-    url += appendSymbol + '_=' + new Date().getTime();
-  }
-
   req.onreadystatechange = function(e) {
-    if (req.readyState == 4) {
+    if (req.readyState === 4) {
       var body = req.responseText;
-      if (opt.type == 'json') {
-        body = JSON.parse(body);
+      var okay = req.status >= 200 && req.status < 300 || req.status === 304;
+
+      try {
+        if (opt.type === 'json') {
+          body = JSON.parse(body);
+        } else if (opt.type === 'form') {
+          body = deformify(body);
+        }
+      } catch (err) {
+        okay = false;
       }
-      var callback = req.status == 200 ? success : failure;
+      var callback = okay ? success : failure;
       if (callback) {
         callback(body, req.status, req);
       }
@@ -95,6 +115,7 @@ var ajax = function(opt, success, failure) {
 };
 
 ajax.formify = formify;
+ajax.deformify = deformify;
 
 return ajax;
 
